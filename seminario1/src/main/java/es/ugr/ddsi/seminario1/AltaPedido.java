@@ -10,7 +10,7 @@ import java.sql.Connection;
  * @author Manu
  */
 public class AltaPedido {
-    void altaPedido(Connection con){
+    public static void altaPedido(Connection con){
         
     }
 }

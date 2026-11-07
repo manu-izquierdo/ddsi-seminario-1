@@ -9,7 +9,7 @@ import java.sql.Connection;
  * @author Manu
  */
 public class MostrarTablas {
-    void mostrarTablas(Connection con){
+    public static void mostrarTablas(Connection con){
         
     }
 }

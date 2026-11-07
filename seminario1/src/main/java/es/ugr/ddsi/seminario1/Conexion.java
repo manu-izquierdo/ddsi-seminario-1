@@ -10,11 +10,11 @@ import java.sql.Connection;
  * @author Manu
  */
 public class Conexion {
-    Connection conectar(){
+    public static Connection conectar(){
         return null;
     }
     
-    void cerrar(Connection con){
+    public static void cerrar(Connection con){
         
     }
 }

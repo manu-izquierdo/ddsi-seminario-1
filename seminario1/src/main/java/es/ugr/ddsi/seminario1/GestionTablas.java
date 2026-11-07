@@ -10,7 +10,7 @@ import java.sql.Connection;
  * @author Manu
  */
 public class GestionTablas {
-    void crearTablas(Connection con){
+    public static void crearTablas(Connection con){
         
     }
 }
