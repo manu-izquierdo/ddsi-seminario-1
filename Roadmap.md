@@ -79,7 +79,7 @@ Checklist:
 **Hecho cuando:** Pulsar la opción deja las 3 tablas creadas y Stock con 10 filas, comprobado en SQL Developer.
 
 ### SEM-06 · Mostrar contenido de las tablas
-**Responsable:** Laura  
+**Responsable:** Carlos  
 **Depende de:** SEM-03
 
 Función que imprime las 3 tablas. Se usa desde la opción 3 del menú y la tienen que llamar también las opciones 1, 2 y 3 del alta de pedido.
@@ -92,7 +92,7 @@ Checklist:
 **Hecho cuando:** Se puede llamar desde cualquier punto del programa.
 
 ### SEM-07 · Alta de pedido (1/2): inicio de transacción y opción 1
-**Responsable:** Carlos  
+**Responsable:** Manu  
 **Depende de:** SEM-05, SEM-06
 
 Captura los datos básicos del pedido, los inserta en Pedido e inicia la transacción. Muestra el submenú (1 añadir detalle, 2 eliminar detalles, 3 cancelar, 4 finalizar). La opción 1 pide producto y cantidad, comprueba que hay stock, inserta en Detalle-Pedido y actualiza Stock, y vuelve al submenú.
