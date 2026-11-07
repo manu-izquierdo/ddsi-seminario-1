@@ -52,6 +52,67 @@ gestiona pedidos usando **transacciones** (Savepoint, Rollback y Commit).
   execute mata_sesion(SID, SERIAL#);   -- solo las INACTIVE
   ```
 
+### Probar tu código contra Oracle (sin subir credenciales)
+
+Para probar tu parte sin esperar a que esté la clase `Conexion` del grupo:
+
+1. Crea `seminario1/config.properties` (junto al `pom.xml`). Ya está en el
+   `.gitignore`, así que no se sube. Las claves se llaman `usuario` y `clave`;
+   la clase `Conexion` del grupo debe leer estas mismas:
+   ```
+   usuario=TU_USUARIO
+   clave=TU_CLAVE
+   ```
+2. Crea estas dos clases en `seminario1/src/main/java/es/ugr/ddsi/seminario1/`.
+   Están en el `.gitignore` (`ConexionLocal.java` y `Prueba.java`): **no se suben**.
+   ```java
+   // ConexionLocal.java
+   package es.ugr.ddsi.seminario1;
+
+   import java.io.File;
+   import java.io.FileInputStream;
+   import java.sql.Connection;
+   import java.sql.DriverManager;
+   import java.util.Properties;
+
+   public class ConexionLocal {
+       public static Connection abrir() throws Exception {
+           // NetBeans ejecuta desde seminario1/ y VS Code desde la raíz del repo
+           File f = new File("config.properties");
+           if (!f.exists()) f = new File("seminario1/config.properties");
+           Properties p = new Properties();
+           try (FileInputStream in = new FileInputStream(f)) { p.load(in); }
+           Connection con = DriverManager.getConnection(
+               "jdbc:oracle:thin:@//oracle0.ugr.es:1521/practbd",
+               p.getProperty("usuario"), p.getProperty("clave"));
+           con.setAutoCommit(false);   // antes de cualquier sentencia
+           return con;
+       }
+   }
+   ```
+   ```java
+   // Prueba.java
+   package es.ugr.ddsi.seminario1;
+
+   import java.sql.Connection;
+
+   public class Prueba {
+       public static void main(String[] args) throws Exception {
+           Connection con = ConexionLocal.abrir();
+           try {
+               AltaPedido.altaPedido(con);   // cambia esta línea por lo que quieras probar
+           } finally {
+               con.close();
+           }
+       }
+   }
+   ```
+3. Con la VPN activa, ejecuta `Prueba`: en NetBeans, clic derecho sobre el
+   fichero → *Run File*; en terminal, desde `seminario1/`:
+   ```
+   mvn compile exec:java -Dexec.mainClass=es.ugr.ddsi.seminario1.Prueba
+   ```
+
 ## 4. Tablas (nombres comunes para todo el código)
 
 Los guiones del enunciado no son válidos en Oracle, así que usamos guion bajo
@@ -162,6 +223,9 @@ Paquete `es.ugr.ddsi.seminario1`. Una clase por responsable para no pisarnos:
 - Los métodos son `public static`.
 - Se comparte **un único `Connection`**, que se pasa por parámetro.
   Autocommit **desactivado** desde que se abre la conexión.
+- `AltaPedido` usa su propio `Scanner` sobre `System.in`. En el resto de clases
+  no llaméis a `scanner.close()` (cierra `System.in` y rompe a los demás) y,
+  si podéis, usad un solo `Scanner` en el menú.
 
 ## 6. Cómo trabajamos con git
 
