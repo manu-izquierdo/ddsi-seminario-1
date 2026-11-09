@@ -5,52 +5,43 @@
 package es.ugr.ddsi.seminario1;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Scanner;
 
 /**
- * SEM-04 · Menú principal y salida del programa.
- * Interfaz por consola con las 4 opciones del enunciado.
+ * Menú por consola (SEM-04, Laura).
+ * Lee y valida la opción y llama a la función del compañero correspondiente.
  */
 public class Menu {
 
-    // Ajusta estos datos a tu entorno Oracle
-    private static final String URL  = "jdbc:oracle:thin:@//localhost:1521/XEPDB1";
-    private static final String USER = "usuario";
-    private static final String PASS = "clave";
-
-    public static void main(String[] args) {
-        Connection conn = null;
+    /** Bucle del menú; termina cuando el usuario elige la opción 4.
+     * @param con */
+    public static void menuPrincipal(Connection con) {
+        // No se cierra este Scanner: cerraría System.in y rompería a los demás.
         Scanner sc = new Scanner(System.in);
+        boolean salir = false;
 
-        try {
-            conn = DriverManager.getConnection(URL, USER, PASS);
-            conn.setAutoCommit(false); // cada función hará commit/rollback
-            System.out.println("Conexión establecida con Oracle.");
+        while (!salir) {
+            mostrarMenu();
+            int opcion = leerOpcion(sc);
 
-            boolean salir = false;
-            while (!salir) {
-                mostrarMenu();
-                int opcion = leerOpcion(sc);
-
+            try {
                 switch (opcion) {
-                    case 1 -> // Borrar y recrear tablas e insertar 10 tuplas
-                        Operaciones.reiniciarTablas(conn);
-                    case 2 -> // Dar de alta nuevo pedido
-                        Operaciones.altaPedido(conn, sc);
-                    case 3 -> // Mostrar contenido de las tablas
-                        Operaciones.mostrarTablas(conn);
+                    case 1 -> GestionTablas.crearTablas(con);
+                    case 2 -> AltaPedido.altaPedido(con);
+                    case 3 -> MostrarTablas.mostrarTablas(con);
                     case 4 -> salir = true;
                     default -> System.out.println("Opción no válida. Elige un número del 1 al 4.");
                 }
+            } catch (Exception e) {
+                // Un fallo en una opción no debe tumbar el menú.
+                System.err.println("Error en la operación: " + e.getMessage());
+                try {
+                    con.rollback();
+                } catch (SQLException ex) {
+                    System.err.println("No se pudo hacer rollback: " + ex.getMessage());
+                }
             }
-        } catch (SQLException e) {
-            System.err.println("Error de base de datos: " + e.getMessage());
-        } finally {
-            cerrarConexion(conn);
-            sc.close();
-            System.out.println("Programa finalizado.");
         }
     }
 
@@ -67,28 +58,12 @@ public class Menu {
     /** Lee una línea y la convierte a entero; devuelve -1 si no es un número. */
     private static int leerOpcion(Scanner sc) {
         if (!sc.hasNextLine()) {
-            return 4; // fin de entrada (Ctrl+D / Ctrl+Z): salir limpiamente
+            return 4; // fin de la entrada (Ctrl+D / Ctrl+Z): salir limpiamente
         }
-        String linea = sc.nextLine().trim();
         try {
-            return Integer.parseInt(linea);
+            return Integer.parseInt(sc.nextLine().trim());
         } catch (NumberFormatException e) {
             return -1;
-        }
-    }
-
-    /** Cierra la conexión sin dejar sesiones colgadas ni transacciones abiertas. */
-    private static void cerrarConexion(Connection conn) {
-        if (conn == null) return;
-        try {
-            if (!conn.isClosed()) {
-                try (conn) {
-                    conn.rollback(); // descarta cualquier transacción pendiente
-                } // descarta cualquier transacción pendiente
-                System.out.println("Conexión cerrada.");
-            }
-        } catch (SQLException e) {
-            System.err.println("Error al cerrar la conexión: " + e.getMessage());
         }
     }
 }
