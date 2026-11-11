@@ -12,7 +12,7 @@ public class MostrarTablas {
      * Muestra el contenido de las tablas Stock, Pedido y Detalle_Pedido.
      * @param conexion Conexión activa a la base de datos.
      */
-    public void mostrarContenido(Connection conexion) {
+    public static void mostrarTablas(Connection conexion) {
         // En SQL, los guiones (-) no son válidos para nombres de tablas, se asume Detalle_Pedido
         String[] tablas = {"Stock", "Pedido", "Detalle_Pedido"};
 
