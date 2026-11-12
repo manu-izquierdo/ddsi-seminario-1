@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.util.Scanner;
 
 /**
- * SEM-04 · Menú principal y salida del programa.
+ * Menú principal y salida del programa.
  * Responsable: Laura.
  *
  * Se usa un único Connection (autocommit desactivado en Conexion.conectar())
@@ -47,9 +47,9 @@ public class Seminario1 {
 
             try {
                 switch (opcion) {
-                    case 1 -> GestionTablas.crearTablas(con);
-                    case 2 -> AltaPedido.altaPedido(con);
-                    case 3 -> MostrarTablas.mostrarTablas(con);
+                    case 1 -> GestionTablas.crearTablas(con); //Nour
+                    case 2 -> AltaPedido.altaPedido(con); //Manu
+                    case 3 -> MostrarTablas.mostrarTablas(con); //Carlos
                     case 4 -> salir = true;
                     default -> System.out.println("Opción no válida. Elige un número del 1 al 4.");
                 }
