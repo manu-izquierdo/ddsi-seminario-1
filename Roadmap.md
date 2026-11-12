@@ -79,7 +79,7 @@ Checklist:
 **Hecho cuando:** Pulsar la opción deja las 3 tablas creadas y Stock con 10 filas, comprobado en SQL Developer.
 
 ### SEM-06 · Mostrar contenido de las tablas
-**Responsable:** Laura  
+**Responsable:** Carlos  
 **Depende de:** SEM-03
 
 Función que imprime las 3 tablas. Se usa desde la opción 3 del menú y la tienen que llamar también las opciones 1, 2 y 3 del alta de pedido.
@@ -92,18 +92,20 @@ Checklist:
 **Hecho cuando:** Se puede llamar desde cualquier punto del programa.
 
 ### SEM-07 · Alta de pedido (1/2): inicio de transacción y opción 1
-**Responsable:** Carlos  
+**Responsable:** Manu  
 **Depende de:** SEM-05, SEM-06
 
 Captura los datos básicos del pedido, los inserta en Pedido e inicia la transacción. Muestra el submenú (1 añadir detalle, 2 eliminar detalles, 3 cancelar, 4 finalizar). La opción 1 pide producto y cantidad, comprueba que hay stock, inserta en Detalle-Pedido y actualiza Stock, y vuelve al submenú.
 
 Checklist:
-- [ ] Captura de Cpedido, Ccliente y Fecha-pedido
-- [ ] INSERT en Pedido
-- [ ] Submenú de 4 opciones
-- [ ] Opción 1: comprobar stock, INSERT en Detalle-Pedido y UPDATE en Stock
-- [ ] Decidir con Manu dónde se pone el Savepoint
-- [ ] Mostrar contenido de la BD tras la opción 1
+- [x] Captura de Cpedido, Ccliente y Fecha-pedido
+- [x] INSERT en Pedido
+- [x] Submenú de 4 opciones
+- [x] Opción 1: comprobar stock, INSERT en Detalle-Pedido y UPDATE en Stock
+- [x] Decidir con Manu dónde se pone el Savepoint (`SP_PEDIDO`, justo después del INSERT en Pedido)
+- [ ] Mostrar contenido de la BD tras la opción 1 (la llamada ya está hecha; falta `mostrarTablas`, SEM-06)
+
+**Estado:** implementado en `AltaPedido.java` (rama `manu/alta-pedido`). Probado en Oracle: crear pedido, producto inexistente, añadir detalle y finalizar. Pendiente de probar en Oracle: rechazo por falta de stock sin dejar cambios.
 
 **Hecho cuando:** Se puede crear un pedido y añadir detalles; si no hay stock lo rechaza sin dejar cambios a medias.
 
@@ -114,12 +116,14 @@ Checklist:
 Opción 2: elimina los detalles insertados del pedido actual (no el pedido). Opción 3: elimina el pedido y sus detalles y vuelve al menú principal. Opción 4: cambios permanentes y vuelta al menú. Tras las opciones 1, 2 y 3 hay que mostrar el contenido de la BD. Pista: pensad a qué estado hay que volver en la opción 2 y qué Savepoint lo permite.
 
 Checklist:
-- [ ] Definir el Savepoint con Carlos
+- [x] Definir el Savepoint (lo decide quien hace SEM-07: `SP_PEDIDO` tras el INSERT en Pedido, y un savepoint por detalle para que INSERT y UPDATE sean una unidad)
 - [ ] Opción 2 con Rollback a Savepoint
 - [ ] Opción 3 con Rollback completo
-- [ ] Opción 4 con Commit
-- [ ] Comprobar que el autocommit está desactivado
+- [x] Opción 4 con Commit
+- [x] Comprobar que el autocommit está desactivado
 - [ ] Mostrar BD tras 1, 2 y 3
+
+**Estado:** implementado en `AltaPedido.java`. Probado en Oracle: opción 4 (Commit, visible desde otra sesión). Pendiente de probar en Oracle: opción 2 (Rollback a Savepoint, repetida) y opción 3 (Rollback completo). Marcar esas casillas al probarlas.
 
 **Hecho cuando:** Las 4 opciones se comportan como pide el enunciado.
 
