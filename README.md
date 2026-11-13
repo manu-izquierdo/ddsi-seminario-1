@@ -1,36 +1,81 @@
-# DDSI · Seminario 1 — Acceso a bases de datos (Java + JDBC + Oracle)
+# DDSI · Seminario 1: acceso a bases de datos (Java + JDBC + Oracle)
 
-Grupo: Ivan, Nour, Laura, Carlos y Manu.
-Reparto de tareas y dependencias: [`Roadmap.md`](Roadmap.md).
+Grupo C: Ivan, Nour, Laura, Carlos y Manu.
 
 Programa de consola en Java que se conecta por JDBC al Oracle de la ETSIIT y
-gestiona pedidos usando **transacciones** (Savepoint, Rollback y Commit).
+da de alta pedidos dentro de una **transacción** (autocommit desactivado,
+`Savepoint`, `rollback` y `commit`).
 
-## 1. Requisitos
+| Documento | Para qué |
+|---|---|
+| Este README | Instalar, configurar, ejecutar y entender el código |
+| [`PRUEBAS.md`](PRUEBAS.md) | Casos de prueba contra Oracle (con casilla para marcar) |
+| [`DEFENSA.md`](DEFENSA.md) | Guion de la demo y preguntas probables |
+| [`Roadmap.md`](Roadmap.md) | Reparto de tareas y estado de cada una |
+
+## 1. Qué hace el programa
+
+Menú principal:
+
+1. **Borrar y recrear las tablas** e insertar 10 tuplas en `STOCK`.
+2. **Dar de alta un pedido.** Pide código de pedido, de cliente y fecha, inserta
+   en `PEDIDO` (aquí empieza la transacción) y abre este submenú:
+   1. Añadir un detalle: comprueba el stock, inserta en `DETALLE_PEDIDO` y descuenta de `STOCK`.
+   2. Eliminar todos los detalles: `rollback` al savepoint `SP_PEDIDO` (el pedido sigue).
+   3. Cancelar el pedido: `rollback` completo y vuelta al menú.
+   4. Finalizar el pedido: `commit` y vuelta al menú.
+
+   Tras las opciones 1, 2 y 3 del submenú se muestra el contenido de las tablas.
+3. **Mostrar el contenido** de las tres tablas.
+4. **Salir**, cerrando la conexión.
+
+## 2. Requisitos
 
 - **JDK 17 o superior** (`java -version`).
-- **Maven** (NetBeans e IntelliJ lo traen integrado; en terminal, `mvn -v`).
-- **SQL Developer** (cliente de la BD).
-- **VPN de la UGR** (o Eduroam) activa para conectar al servidor Oracle.
+- **Maven**: NetBeans e IntelliJ lo traen integrado; en terminal, `mvn -v`.
+- **Driver JDBC de Oracle**: `ojdbc8` 19.22.0.0. No hay que bajarlo a mano,
+  Maven lo descarga a partir del `pom.xml`.
+- **SQL Developer**, para ver la BD y abrir una segunda sesión en las pruebas.
+- **VPN de la UGR** (o Eduroam) activa: sin ella no se llega a `oracle0.ugr.es`.
 
-## 2. Poner el proyecto en marcha
+## 3. Puesta en marcha
 
-1. Clonar **fuera de Google Drive y OneDrive** (git y la sincronización
-   de esas carpetas se estropean entre sí):
+1. Clona el repo **fuera de Google Drive y OneDrive**, porque su sincronización
+   estropea la carpeta `.git`:
    ```
    git clone https://github.com/manu-izquierdo/ddsi-seminario-1
    ```
-2. Abrir la carpeta `seminario1/` como proyecto Maven (NetBeans:
-   *File → Open Project*). No subas ficheros del IDE: el `.gitignore` ya
-   los excluye.
-3. Compilar y ejecutar (vale en Windows, Linux y macOS):
+2. Crea el fichero **`seminario1/config.properties`** (junto al `pom.xml`) con tus
+   credenciales de Oracle:
    ```
-   cd seminario1
-   mvn compile exec:java
+   usuario=TU_USUARIO
+   clave=TU_CLAVE
    ```
+   Está en el `.gitignore`: **nunca se sube**. `Conexion` lo busca primero en la
+   carpeta desde la que se ejecuta y luego en `seminario1/`, así que funciona
+   tanto desde NetBeans como desde la raíz del repo en VS Code.
+3. Activa la VPN.
+4. Ejecuta el programa:
+   - **NetBeans**: *File → Open Project* → carpeta `seminario1` → *Run* (F6).
+   - **Terminal**:
+     ```
+     cd seminario1
+     mvn compile exec:java
+     ```
    La clase principal es `es.ugr.ddsi.seminario1.Seminario1`.
+5. La primera vez, elige la **opción 1** para crear las tablas.
 
-## 3. Base de datos de la ETSIIT
+### Errores típicos al arrancar
+
+| Mensaje | Causa |
+|---|---|
+| `No se pudo leer config.properties` | Falta el fichero o está en otra carpeta (paso 2) |
+| `IO Error: The Network Adapter could not establish the connection` | VPN apagada o sin red |
+| `ORA-01017: invalid username/password` | Usuario o clave mal en `config.properties` |
+| `ORA-28001: the password has expired` | Cambia la contraseña desde SQL Developer |
+| `ORA-02391: exceeded simultaneous SESSIONS_PER_USER limit` | Demasiadas sesiones abiertas (ver sección 4) |
+
+## 4. Base de datos de la ETSIIT
 
 | Dato | Valor |
 |---|---|
@@ -41,10 +86,8 @@ gestiona pedidos usando **transacciones** (Savepoint, Rollback y Commit).
 | Contraseña inicial | igual que el usuario (**cámbiala al entrar**) |
 | URL JDBC | `jdbc:oracle:thin:@//oracle0.ugr.es:1521/practbd` |
 
-- **Nunca subas usuario ni contraseña al repo.** `config.properties` está
-  en el `.gitignore`.
-- Cada usuario tiene como máximo 3 o 4 conexiones simultáneas.
-  Cierra siempre la conexión al salir.
+- Cada usuario puede tener 3 o 4 conexiones a la vez. El programa cierra siempre
+  la suya al salir.
 - Si se quedan sesiones colgadas, en SQL Developer:
   ```sql
   set serveroutput on
@@ -52,212 +95,123 @@ gestiona pedidos usando **transacciones** (Savepoint, Rollback y Commit).
   execute mata_sesion(SID, SERIAL#);   -- solo las INACTIVE
   ```
 
-### Probar tu código contra Oracle (sin subir credenciales)
+### Tablas
 
-Para probar tu parte sin esperar a que esté la clase `Conexion` del grupo:
+Los guiones del enunciado (`Fecha-pedido`, `Detalle-Pedido`) no son válidos en
+Oracle, así que se usa guion bajo:
 
-1. Crea `seminario1/config.properties` (junto al `pom.xml`). Ya está en el
-   `.gitignore`, así que no se sube. Las claves se llaman `usuario` y `clave`;
-   la clase `Conexion` del grupo debe leer estas mismas:
-   ```
-   usuario=TU_USUARIO
-   clave=TU_CLAVE
-   ```
-2. Crea estas dos clases en `seminario1/src/main/java/es/ugr/ddsi/seminario1/`.
-   Están en el `.gitignore` (`ConexionLocal.java` y `Prueba.java`): **no se suben**.
-   ```java
-   // ConexionLocal.java
-   package es.ugr.ddsi.seminario1;
+| Tabla | Columnas | Claves |
+|---|---|---|
+| `STOCK` | `CPRODUCTO`, `CANTIDAD` (≥ 0) | PK `CPRODUCTO` |
+| `PEDIDO` | `CPEDIDO`, `CCLIENTE`, `FECHA_PEDIDO` (`DATE`) | PK `CPEDIDO` |
+| `DETALLE_PEDIDO` | `CPEDIDO`, `CPRODUCTO`, `CANTIDAD` (> 0) | PK (`CPEDIDO`, `CPRODUCTO`); FK a `PEDIDO` y a `STOCK` |
 
-   import java.io.File;
-   import java.io.FileInputStream;
-   import java.sql.Connection;
-   import java.sql.DriverManager;
-   import java.util.Properties;
+Todos los dominios son numéricos salvo `FECHA_PEDIDO`. Stock inicial tras la opción 1:
 
-   public class ConexionLocal {
-       public static Connection abrir() throws Exception {
-           // NetBeans ejecuta desde seminario1/ y VS Code desde la raíz del repo
-           File f = new File("config.properties");
-           if (!f.exists()) f = new File("seminario1/config.properties");
-           Properties p = new Properties();
-           try (FileInputStream in = new FileInputStream(f)) { p.load(in); }
-           Connection con = DriverManager.getConnection(
-               "jdbc:oracle:thin:@//oracle0.ugr.es:1521/practbd",
-               p.getProperty("usuario"), p.getProperty("clave"));
-           con.setAutoCommit(false);   // antes de cualquier sentencia
-           return con;
-       }
-   }
-   ```
-   ```java
-   // Prueba.java
-   package es.ugr.ddsi.seminario1;
+| Producto | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Cantidad | 50 | 30 | 75 | 20 | 100 | 40 | 60 | 15 | 90 | 25 |
 
-   import java.sql.Connection;
+### Scripts SQL (`seminario1/sql/`)
 
-   public class Prueba {
-       public static void main(String[] args) throws Exception {
-           Connection con = ConexionLocal.abrir();
-           try {
-               AltaPedido.altaPedido(con);   // cambia esta línea por lo que quieras probar
-           } finally {
-               con.close();
-           }
-       }
-   }
-   ```
-3. Con la VPN activa, ejecuta `Prueba`: en NetBeans, clic derecho sobre el
-   fichero → *Run File*; en terminal, desde `seminario1/`:
-   ```
-   mvn compile exec:java -Dexec.mainClass=es.ugr.ddsi.seminario1.Prueba
-   ```
+El programa **no los usa**: la opción 1 hace lo mismo desde Java. Sirven para
+preparar o revisar la BD a mano en SQL Developer (ejecutar con *Run Script*, F5).
 
-## 4. Tablas (nombres comunes para todo el código)
+| Fichero | Contenido |
+|---|---|
+| `database.sql` | `CREATE TABLE` de las 3 tablas, igual que la opción 1 |
+| `data.sql` | Las 10 tuplas de `STOCK`, iguales que en la opción 1 |
+| `preparar_pruebas.sql` | Borra y recrea todo con otro stock pensado para casos límite (productos con 0, 1 y 2 unidades). No lleva los `CHECK` |
 
-Los guiones del enunciado no son válidos en Oracle, así que usamos guion bajo
-y sin tildes. **Todo el código y todo el SQL usa exactamente estos nombres:**
+### Segunda sesión para ver las transacciones
 
-- `STOCK (CPRODUCTO, CANTIDAD)`
-- `PEDIDO (CPEDIDO, CCLIENTE, FECHA_PEDIDO)`
-- `DETALLE_PEDIDO (CPEDIDO, CPRODUCTO, CANTIDAD)`
-
-Todos los dominios son numéricos salvo `FECHA_PEDIDO` (`DATE`).
-
-### Preparar la BD para probar a mano
-
-Mientras `crearTablas()` (opción 1, SEM-05) no esté lista, o para probar
-sin pasar por el programa:
-
-1. Conectar con SQL Developer a tu cuenta.
-2. Abrir [`seminario1/sql/preparar_pruebas.sql`](seminario1/sql/preparar_pruebas.sql).
-3. Ejecutar con **Run Script (F5)**. Borra y recrea las 3 tablas y deja
-   10 filas en `STOCK` (con `COMMIT` incluido).
-
-<details>
-<summary>Ver el script SQL (copia del fichero, que es la fuente)</summary>
-
-```sql
--- ============================================================
--- Seminario 1 DDSI - Entorno de pruebas en SQL Developer
--- Borra y recrea las 3 tablas y deja 10 filas en STOCK.
--- Ejecutar con "Run Script" (F5), NO con "Run Statement".
--- Es solo para probar a mano: la version real, en Java, es
--- crearTablas() (SEM-05).
--- ============================================================
-
--- 1) Borrado (de hijas a padres). Si la tabla no existe (ORA-00942), se ignora.
-BEGIN EXECUTE IMMEDIATE 'DROP TABLE detalle_pedido';
-EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF;
-END;
-/
-BEGIN EXECUTE IMMEDIATE 'DROP TABLE pedido';
-EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF;
-END;
-/
-BEGIN EXECUTE IMMEDIATE 'DROP TABLE stock';
-EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF;
-END;
-/
-
--- 2) Creacion (de padres a hijas)
-CREATE TABLE stock (
-    cproducto NUMBER(10) CONSTRAINT pk_stock PRIMARY KEY,
-    cantidad  NUMBER(10) NOT NULL
-);
-
-CREATE TABLE pedido (
-    cpedido      NUMBER(10) CONSTRAINT pk_pedido PRIMARY KEY,
-    ccliente     NUMBER(10) NOT NULL,
-    fecha_pedido DATE       NOT NULL
-);
-
-CREATE TABLE detalle_pedido (
-    cpedido   NUMBER(10) NOT NULL,
-    cproducto NUMBER(10) NOT NULL,
-    cantidad  NUMBER(10) NOT NULL,
-    CONSTRAINT pk_detalle_pedido PRIMARY KEY (cpedido, cproducto),
-    CONSTRAINT fk_detalle_pedido FOREIGN KEY (cpedido)   REFERENCES pedido (cpedido),
-    CONSTRAINT fk_detalle_stock  FOREIGN KEY (cproducto) REFERENCES stock (cproducto)
-);
-
--- 3) Datos de prueba en STOCK (hay productos con poco stock a proposito)
-INSERT INTO stock VALUES (1, 100);
-INSERT INTO stock VALUES (2, 50);
-INSERT INTO stock VALUES (3, 25);
-INSERT INTO stock VALUES (4, 10);
-INSERT INTO stock VALUES (5, 5);
-INSERT INTO stock VALUES (6, 2);
-INSERT INTO stock VALUES (7, 1);
-INSERT INTO stock VALUES (8, 0);
-INSERT INTO stock VALUES (9, 75);
-INSERT INTO stock VALUES (10, 30);
-
--- IMPORTANTE: sin COMMIT, el resto de sesiones no veran estas filas.
-COMMIT;
-
-SELECT * FROM stock ORDER BY cproducto;
-```
-
-</details>
-
-### Segunda sesión para probar transacciones
-
-Para comprobar qué se ve antes y después del `COMMIT` hace falta una
-**segunda sesión**: en SQL Developer, `Ctrl+Mayús+N` (*Open Unshared SQL
-Worksheet*). Dos hojas normales de la misma conexión comparten sesión y
-no sirven. Recuerda el límite de conexiones: programa + 2 hojas = 3.
+Para comprobar qué ve otra sesión antes y después del `commit`, abre en SQL
+Developer una hoja **sin compartir**: `Ctrl+Mayús+N` (*Open Unshared SQL
+Worksheet*). Dos hojas normales de la misma conexión comparten sesión y no sirven.
+Programa + 2 hojas = 3 conexiones, dentro del límite.
 
 ## 5. Estructura del código
 
-Paquete `es.ugr.ddsi.seminario1`. Una clase por responsable para no pisarnos:
+Paquete `es.ugr.ddsi.seminario1`, en `seminario1/src/main/java/`:
 
-| Clase | Métodos | Responsable |
+| Clase | Qué hace | Autor |
 |---|---|---|
-| `Seminario1` | `main`, `menuPrincipal` (lo añade Laura) | Laura (SEM-04) |
-| `Conexion` | `conectar()`, `cerrar(Connection)` | Ivan (SEM-03) |
-| `GestionTablas` | `crearTablas(Connection)` | Nour (SEM-05) |
-| `MostrarTablas` | `mostrarTablas(Connection)` | Carlos (SEM-06) |
-| `AltaPedido` | `altaPedido(Connection)` | Manu (SEM-07 y SEM-08) |
+| `Seminario1` | `main`: abre la conexión, lanza el menú y la cierra siempre (`finally`). `menuPrincipal`: bucle del menú, valida la opción y, si una opción falla, hace `rollback` y sigue | Laura |
+| `Conexion` | `conectar()`: lee `config.properties`, conecta y **desactiva el autocommit**. `cerrar()`: `rollback` de lo pendiente y cierre | Ivan |
+| `GestionTablas` | Opción 1: `DROP ... PURGE` de las 3 tablas (ignora ORA-00942 si no existen), `CREATE`, 10 `INSERT` y `commit` | Nour |
+| `MostrarTablas` | Imprime las 3 tablas con sus columnas (`ResultSetMetaData`), ordenadas por la primera columna | Carlos |
+| `AltaPedido` | Opción 2 completa: transacción, savepoints, submenú y control de stock con `SELECT ... FOR UPDATE` | Manu |
+| `Entrada` | Un único `Scanner` sobre `System.in` que comparten el menú y el alta de pedido | Manu |
 
-- Los métodos son `public static`.
-- Se comparte **un único `Connection`**, que se pasa por parámetro.
-  Autocommit **desactivado** desde que se abre la conexión.
-- `AltaPedido` usa su propio `Scanner` sobre `System.in`. En el resto de clases
-  no llaméis a `scanner.close()` (cierra `System.in` y rompe a los demás) y,
-  si podéis, usad un solo `Scanner` en el menú.
+Decisiones comunes:
 
-## 6. Cómo trabajamos con git
+- **Una sola `Connection`** para todo el programa, que se pasa por parámetro.
+  Así todas las operaciones están en la misma sesión y se respeta el límite de conexiones.
+- **Autocommit desactivado** desde que se abre la conexión.
+- **Un único `Scanner`** (`Entrada.SC`) y nunca se cierra. Con dos `Scanner`
+  sobre `System.in`, el primero se queda en su buffer las líneas que tocaban al
+  segundo (pasa al pegar varias líneas en la consola).
+- **`PreparedStatement`** para todo lo que lleva datos del usuario.
 
-- `main` **siempre compila**. Nadie trabaja directamente en `main`.
-- Una rama por persona y tarea: `nombre/tarea` (ej. `manu/alta-pedido`).
-- Se integra con **Pull Request** hacia `main`, revisado por otra persona,
-  con *Squash and merge*, y se borra la rama después.
-- Cada uno toca solo su clase. Los ficheros compartidos
-  (`pom.xml`, `README.md`, `Roadmap.md`) se cambian en PRs pequeños.
+### La transacción del alta de pedido
 
-### Rutina para estar siempre al día
+```
+INSERT Pedido ─► SAVEPOINT SP_PEDIDO ─► [savepoint por detalle ─► INSERT Detalle + UPDATE Stock] x N ─► COMMIT (opción 4)
+                        ▲                                                                       └─► ROLLBACK (opción 3)
+                        └──────────── ROLLBACK TO SP_PEDIDO (opción 2: se pierden detalles y stock, el pedido sigue)
+```
+
+- `SP_PEDIDO` se crea justo después de insertar el pedido. La opción 2 vuelve
+  ahí, y se puede usar varias veces en el mismo pedido.
+- Cada detalle tiene su propio savepoint (sin nombre). El `INSERT` en
+  `DETALLE_PEDIDO` y el `UPDATE` de `STOCK` son así una unidad: si falla uno,
+  se deshacen los dos sin tocar los detalles anteriores.
+- `SELECT cantidad FROM stock ... FOR UPDATE` bloquea la fila del producto hasta
+  el final de la transacción, para que otra sesión no cambie el stock entre la
+  comprobación y el `UPDATE`.
+- Se rechaza, sin dejar cambios: producto inexistente, producto ya incluido en
+  el pedido, cantidad ≤ 0 y stock insuficiente.
+- Un código de pedido repetido lo rechaza la clave primaria. Se hace
+  `rollback` y se vuelve al menú.
+
+## 6. Pruebas
+
+- Casos contra Oracle: [`PRUEBAS.md`](PRUEBAS.md). Hay que hacerlos con la VPN
+  y una segunda sesión abierta, y marcar cada casilla.
+- El 13/11 se ejecutó el programa completo sobre H2 en modo Oracle, como prueba
+  automática **sin** Oracle. Fuera del repo hubo dos adaptaciones: quitar
+  `PURGE` y traducir el error de tabla inexistente a ORA-00942. Pasaron los 20
+  controles: opción 1 repetida y con pedidos ya creados, visibilidad antes y después del `commit`,
+  bloqueo `FOR UPDATE`, opciones 2 (repetida), 3 y 4, rechazos de stock y salida. **Esto
+  no sustituye a la prueba en Oracle.**
+
+## 7. Cómo trabajamos con git
+
+- `main` **siempre compila**. Nadie hace push directo a `main`: se integra con
+  **Pull Request**, revisado por otra persona.
+- Una rama por persona y tarea, `nombre/tarea` (ej. `manu/alta-pedido`), y se
+  borra después del merge.
+- No se suben ficheros del IDE (`.vs/`, `nbproject/private/`, `.idea/`...) ni
+  `config.properties`. Antes de hacer commit, revisa `git status`.
 
 Al empezar cada sesión de trabajo:
 ```
 git checkout main
 git pull
-git checkout nombre/tarea
-git merge main
-```
-Haz lo mismo justo antes de abrir el PR y compila después.
-Commits pequeños y `git push` al terminar cada sesión.
-
-Una tarea nueva empieza siempre con una rama nueva desde un `main`
-recién actualizado:
-```
-git checkout main
-git pull
-git checkout -b nombre/tarea-nueva
+git checkout -b nombre/tarea-nueva     # o: git checkout nombre/tarea && git merge main
 ```
 
-## 7. Entrega
+### Estado de las ramas (13/11)
 
-Un `.zip` con el PDF breve y el código fuente, subido a PRADO una sola vez
-por grupo (SEM-10 y SEM-11 del Roadmap). En la defensa **todos** tienen que
-saber explicar todo el código.
+| Rama | Estado |
+|---|---|
+| `main` | Programa completo |
+| `Laura`, `carlos/mostrar-tablas`, `gestion-tablas-pr`, `sql-tablas-solo-pr`, `manu/alta-pedido` | Ya integradas en `main`: se pueden borrar |
+| `Nour` | Antigua y **no se debe fusionar**: devolvería `Conexion` a una clase vacía y movería los SQL a `database/`. Su contenido útil ya está en `main` |
+
+## 8. Entrega
+
+Un `.zip` con el PDF breve (lenguaje, instalación y paquetes, fuentes de código
+ajeno y reparto del trabajo) y el código fuente: carpeta `seminario1/` **sin**
+`target/` ni `config.properties`. Lo sube una sola persona a PRADO. En la defensa
+**todos** tienen que saber explicar todo el código; ver [`DEFENSA.md`](DEFENSA.md).

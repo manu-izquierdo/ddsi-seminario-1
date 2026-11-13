@@ -47,6 +47,9 @@ public class Conexion {
         if (con != null) {
             try {
                 if (!con.isClosed()) {
+                    // El driver de Oracle hace COMMIT al cerrar si hay algo pendiente:
+                    // deshacemos antes para que nunca se confirme nada sin querer.
+                    con.rollback();
                     con.close();
                     System.out.println("Conexión cerrada correctamente.");
                 }

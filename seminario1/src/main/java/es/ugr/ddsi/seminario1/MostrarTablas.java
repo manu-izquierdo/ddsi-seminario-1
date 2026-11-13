@@ -21,7 +21,8 @@ public class MostrarTablas {
             System.out.println(" TABLA: " + tabla.toUpperCase());
             System.out.println("============================================================");
             
-            String query = "SELECT * FROM " + tabla;
+            // ORDER BY 1: misma salida en cada ejecución (por la primera columna).
+            String query = "SELECT * FROM " + tabla + " ORDER BY 1";
             
             try (Statement stmt = conexion.createStatement();
                  ResultSet rs = stmt.executeQuery(query)) {
