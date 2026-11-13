@@ -141,16 +141,14 @@ Paquete `es.ugr.ddsi.seminario1`, en `seminario1/src/main/java/`:
 | `GestionTablas` | Opción 1: `DROP ... PURGE` de las 3 tablas (ignora ORA-00942 si no existen), `CREATE`, 10 `INSERT` y `commit` | Nour |
 | `MostrarTablas` | Imprime las 3 tablas con sus columnas (`ResultSetMetaData`), ordenadas por la primera columna | Carlos |
 | `AltaPedido` | Opción 2 completa: transacción, savepoints, submenú y control de stock con `SELECT ... FOR UPDATE` | Manu |
-| `Entrada` | Un único `Scanner` sobre `System.in` que comparten el menú y el alta de pedido | Manu |
 
 Decisiones comunes:
 
 - **Una sola `Connection`** para todo el programa, que se pasa por parámetro.
   Así todas las operaciones están en la misma sesión y se respeta el límite de conexiones.
 - **Autocommit desactivado** desde que se abre la conexión.
-- **Un único `Scanner`** (`Entrada.SC`) y nunca se cierra. Con dos `Scanner`
-  sobre `System.in`, el primero se queda en su buffer las líneas que tocaban al
-  segundo (pasa al pegar varias líneas en la consola).
+- **Los `Scanner` no se cierran nunca.** Cerrar uno cierra `System.in` y el
+  programa ya no podría leer más del teclado.
 - **`PreparedStatement`** para todo lo que lleva datos del usuario.
 
 ### La transacción del alta de pedido

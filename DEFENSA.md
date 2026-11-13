@@ -19,7 +19,7 @@ La defensa es en grupo: preguntas sobre el código y una demo con un cliente de 
 - **¿Por qué el `COMMIT` al final de la opción 1?** Una sentencia DDL (CREATE, DROP) termina la transacción en curso, pero los `INSERT` posteriores no se confirman solos: sin `COMMIT` otras sesiones no verían las 10 filas.
 - **¿Qué pasa si el programa se cae a mitad de pedido?** La sesión se cierra y Oracle deshace lo no confirmado. `Conexion.cerrar` también hace `rollback` antes de cerrar.
 - **¿Por qué una sola conexión que se pasa por parámetro?** Todas las operaciones comparten la misma transacción y se respeta el límite de conexiones por usuario (3 o 4).
-- **¿Por qué un único Scanner?** Dos Scanner sobre `System.in` se comen la entrada entre sí; por eso hay una clase `Entrada` con uno compartido.
+- **¿Por qué no se cierra el `Scanner`?** Cerrarlo cierra `System.in` y el programa ya no podría leer del teclado.
 - **¿Por qué `PreparedStatement`?** Evita concatenar valores del usuario en el SQL (inyección) y deja al driver el formato de fechas y números.
 - **¿Qué pasa si se repite el código de pedido?** La clave primaria lo rechaza (`ORA-00001`); se captura, se hace `rollback` y se vuelve al menú.
 
