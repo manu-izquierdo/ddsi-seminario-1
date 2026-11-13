@@ -8,3 +8,5 @@ nbactions.xml
 config.properties
 ConexionLocal.java
 Prueba.java
+.vs/
+*.suo

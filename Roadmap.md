@@ -6,6 +6,28 @@ Equipo: Ivan, Nour, Laura, Carlos y Manu.
 
 ## Seminario 1
 
+### Estado a 13/11 (día de entrega)
+
+| Tarea | Responsable | Estado |
+|---|---|---|
+| SEM-01 Lenguaje y SGBD | Todos | Hecho: Java 17 + JDBC (`ojdbc8`) + Oracle ETSIIT |
+| SEM-02 Repo y esqueleto | Manu | Hecho |
+| SEM-03 Conexión | Ivan | Hecho (`Conexion`, credenciales en `config.properties`). Falta que **cada uno** conecte desde su portátil |
+| SEM-04 Menú principal | Laura | Hecho (`Seminario1`) |
+| SEM-05 Opción 1 | Nour | Hecho (`GestionTablas` y scripts en `seminario1/sql/`) |
+| SEM-06 Mostrar tablas | Carlos (en Trello figuraba Laura) | Hecho (`MostrarTablas`) |
+| SEM-07 y SEM-08 Alta de pedido | Manu | Hecho (`AltaPedido`) |
+| SEM-09 Pruebas | Nour | Probado sin Oracle (H2, 20 controles OK). **Falta repetir `PRUEBAS.md` en Oracle** |
+| SEM-10 PDF | Ivan | Pendiente de cerrar |
+| SEM-11 Zip y PRADO | Carlos | Pendiente |
+| SEM-12 Defensa | Todos | Guion en `DEFENSA.md` |
+
+Correcciones del 13/11, tras revisar `main`:
+- `Entrada`: un único `Scanner` compartido. Con dos, al pegar varias líneas el alta de pedido fallaba con "No line found".
+- `Conexion.cerrar()` hace `rollback` antes de cerrar, porque el driver de Oracle hace `COMMIT` al cerrar si queda algo pendiente.
+- `MostrarTablas` ordena por la primera columna.
+- Fuera del repo la carpeta `.vs/` de Visual Studio (subida por error), añadida al `.gitignore`.
+
 
 ### SEM-01 · Decidir lenguaje y SGBD
 **Responsable:** Todos (convoca Manu)  

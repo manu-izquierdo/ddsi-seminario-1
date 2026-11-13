@@ -37,8 +37,8 @@ public class Seminario1 {
     /** Bucle del menú: lee y valida la opción y llama a la función correspondiente.
      * @param con */
     public static void menuPrincipal(Connection con) {
-        // No se cierra este Scanner: cerraría System.in y rompería a los demás.
-        Scanner sc = new Scanner(System.in);
+        // Scanner compartido con AltaPedido (ver Entrada). No se cierra.
+        Scanner sc = Entrada.SC;
         boolean salir = false;
 
         while (!salir) {
