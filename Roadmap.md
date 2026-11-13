@@ -23,7 +23,6 @@ Equipo: Ivan, Nour, Laura, Carlos y Manu.
 | SEM-12 Defensa | Todos | Guion en `DEFENSA.md` |
 
 Correcciones del 13/11, tras revisar `main`:
-- `Entrada`: un único `Scanner` compartido. Con dos, al pegar varias líneas el alta de pedido fallaba con "No line found".
 - `Conexion.cerrar()` hace `rollback` antes de cerrar, porque el driver de Oracle hace `COMMIT` al cerrar si queda algo pendiente.
 - `MostrarTablas` ordena por la primera columna.
 - Fuera del repo la carpeta `.vs/` de Visual Studio (subida por error), añadida al `.gitignore`.

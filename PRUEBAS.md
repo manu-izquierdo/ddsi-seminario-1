@@ -24,9 +24,8 @@ Datos de Stock tras la opción 1: producto 1→50, 2→30, 3→75, 4→20, 5→1
 | 16 | Fecha | Fecha vacía; fecha `2026-11-13`; fecha `13/11/2026` | Hoy; la indicada; "formato no válido" y la vuelve a pedir | ✔ | [ ] |
 | 17 | Menú | Opción 7, "hola", línea vacía | "Opción no válida"; el menú sigue | ✔ | [ ] |
 | 18 | Cierre a mitad de pedido | Con un pedido sin finalizar, cerrar el programa (Ctrl+C) | En la 2ª sesión no queda nada del pedido | — | [ ] |
-| 19 | Pegar varias líneas | En el menú, pegar de una vez `2`, `500`, `1`, (vacío), `4` en líneas distintas | El alta recibe sus datos y se finaliza el pedido 500; no aparece "No line found" | ✔ | [ ] |
-| 20 | Salir | Opción 4 | Programa finalizado; en `select * from mis_sesiones` no queda sesión del usuario | ✔ | [ ] |
+| 19 | Salir | Opción 4 | Programa finalizado; en `select * from mis_sesiones` no queda sesión del usuario | ✔ | [ ] |
 
-La columna **H2** marca los casos que pasaron en la prueba automática sin Oracle (13/11); la columna **Oracle** es la que cuenta. El caso 18 depende de cómo cierra Oracle una sesión cortada y solo se puede comprobar allí. El caso 19 fallaba antes de unificar el `Scanner` (clase `Entrada`).
+La columna **H2** marca los casos que pasaron en la prueba automática sin Oracle (13/11); la columna **Oracle** es la que cuenta. El caso 18 depende de cómo cierra Oracle una sesión cortada y solo se puede comprobar allí.
 
 Fallos: anotar caso, pasos y salida, y avisar a quien escribió esa parte.

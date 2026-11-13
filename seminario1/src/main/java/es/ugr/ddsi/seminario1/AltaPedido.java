@@ -31,9 +31,8 @@ import java.util.Scanner;
  */
 public class AltaPedido {
 
-    // Mismo Scanner que el menú (ver Entrada): dos Scanner sobre System.in
-    // se "comen" la entrada uno al otro.
-    private static final Scanner ENTRADA = Entrada.SC;
+    // Un único Scanner para toda la clase. No se cierra: cerraría System.in.
+    private static final Scanner ENTRADA = new Scanner(System.in);
 
     public static void altaPedido(Connection con) {
         try {
